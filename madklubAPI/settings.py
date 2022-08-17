@@ -43,6 +43,7 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE': True,
+    'SET_PASSWORD_RETYPE': True,
     'SERIALIZERS': {
         'token': 'madklubAPI.serializers.TokenSerializer'
     }
@@ -65,7 +66,8 @@ INSTALLED_APPS = [
     'djoser',
     'corsheaders',
 
-    'MyUser'
+    'MyUser',
+    'madklubSchema',
 ]
 
 MIDDLEWARE = [
