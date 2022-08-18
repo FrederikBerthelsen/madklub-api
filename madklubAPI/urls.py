@@ -22,4 +22,5 @@ urlpatterns = [
     path('auth/', include('djoser.urls.authtoken')),
     path('auth/', include('MyUser.urls')),
     path('schema/', include('madklubSchema.urls')),
+    path('', include('madklubModel.urls')),
 ]

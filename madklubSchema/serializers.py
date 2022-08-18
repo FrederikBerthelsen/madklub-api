@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Schema
-from MyUser.models import MyUser
 from djoser.serializers import UserSerializer
 
 class SchemaSerializer(serializers.ModelSerializer):
