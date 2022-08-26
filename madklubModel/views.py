@@ -36,9 +36,9 @@ class MadklubViewSet(ModelViewSet):
                 madklub = self.perform_create(serializer, user, data)
                 return Response(MadklubSerializer(madklub).data, status=status.HTTP_200_OK)
             else:
-                return Response([{'diet': "Your diet is not represented in the available diets"}], status=status.HTTP_400_BAD_REQUEST)
+                return Response({'diet': ["Your diet is not represented in the available diets"]}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status = status.HTTP_200_OK)
+        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
     def partial_update(self, request, pk):
         data = request.data
@@ -47,11 +47,11 @@ class MadklubViewSet(ModelViewSet):
             madklub = Madklub.objects.get(id = pk)
             oldDate = madklub.date
             if madklub.owner != request.user:
-                return Response([{'madklub': 'You are not the owner of the madklub'}], status=status.HTTP_400_BAD_REQUEST)
+                return Response({'madklub': ['You are not the owner of the madklub']}, status=status.HTTP_400_BAD_REQUEST)
             serializer = self.serializer_class(madklub, data=data)
             if serializer.is_valid():
                 if user.diet not in data['diet']:
-                    return Response([{'diet': 'Your diet is not represented in the available diets'}], status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'diet': ['Your diet is not represented in the available diets']}, status=status.HTTP_400_BAD_REQUEST)
                 madklub = serializer.save()
                 if oldDate != madklub.date:
                     MadklubParticipant.objects.filter(madklub=madklub).exclude(participant=user).delete()
@@ -59,7 +59,7 @@ class MadklubViewSet(ModelViewSet):
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response([{'madklub': 'The madklub does not exist'}], status=status.HTTP_400_BAD_REQUEST)
+            return Response({'madklub': ['The madklub does not exist']}, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk):
         print("Entered Delete")
@@ -67,12 +67,12 @@ class MadklubViewSet(ModelViewSet):
         if Madklub.objects.filter(id = pk).count() > 0:
             madklub = Madklub.objects.get(id = pk)
             if madklub.owner != user:
-                return Response([{'madklub': 'You are not the owner of the madklub'}], status=status.HTTP_400_BAD_REQUEST)
+                return Response({'madklub': ['You are not the owner of the madklub']}, status=status.HTTP_400_BAD_REQUEST)
             instance = self.get_object()
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response([{'madklub': 'The madklub does not exist'}], status=status.HTTP_400_BAD_REQUEST)
+            return Response({'madklub': ['The madklub does not exist']}, status=status.HTTP_400_BAD_REQUEST)
 
 
     @action(["post"], permission_classes=[IsAuthenticated], detail=False)
@@ -90,14 +90,14 @@ class MadklubViewSet(ModelViewSet):
         if Madklub.objects.filter(date = date).count() > 0:
             madklub = Madklub.objects.get(date = date)
             if MadklubParticipant.objects.filter(participant=user, madklub=madklub).count() > 0:
-                return Response([{'madklub': 'You have already joined this madklub'}], status=HTTP_400_BAD_REQUEST)
+                return Response({'madklub': ['You have already joined this madklub']}, status=HTTP_400_BAD_REQUEST)
             if diet in madklub.diet:
                 MadklubParticipant.objects.create(participant=user, madklub=madklub, diet=diet, guests=guests)
                 return Response(MadklubSerializer(madklub).data, status=status.HTTP_200_OK)
             else:
-                return Response([{'diet': 'Your chosen diet is not represented in the available diets'}], status=status.HTTP_400_BAD_REQUEST)
+                return Response({'diet': ['Your chosen diet is not represented in the available diets']}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response([{'madklub': 'The madklub does not exist'}], status=status.HTTP_200_OK)
+            return Response({'madklub': ['The madklub does not exist']}, status=status.HTTP_200_OK)
 
     @action(["post"], permission_classes=[IsAuthenticated], detail=False)
     def leave(self, request):
@@ -112,9 +112,9 @@ class MadklubViewSet(ModelViewSet):
                 MadklubParticipant.objects.get(participant=user, madklub=madklub).delete()
                 return Response(MadklubSerializer(madklub).data, status=status.HTTP_200_OK)
             except:
-                return Response([{'madklub': 'You are not apart of this madklub'}], status=status.HTTP_400_BAD_REQUEST)
+                return Response({'madklub': ['You are not apart of this madklub']}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response([{'madklub': 'The madklub does not exist'}], status=status.HTTP_400_BAD_REQUEST)
+            return Response({'madklub': ['The madklub does not exist']}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(["post"], permission_classes=[IsAuthenticated], detail=False)
     def updateParticipant(self, request):
@@ -126,7 +126,7 @@ class MadklubViewSet(ModelViewSet):
         if Madklub.objects.filter(date = date).count() > 0:
             madklub = Madklub.objects.get(date = date)
             if not (MadklubParticipant.objects.filter(participant=user, madklub=madklub)):
-                return Response([{'madklub': 'You are not apart of this madklub'}], status=status.HTTP_400_BAD_REQUEST)
+                return Response({'madklub': ['You are not apart of this madklub']}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 participant = MadklubParticipant.objects.get(participant=user, madklub=madklub)
                 if "guests" in data:
@@ -134,11 +134,11 @@ class MadklubViewSet(ModelViewSet):
                 if "diet" in data and data['diet'] in madklub.diet:
                     participant.diet = data['diet']
                 else:
-                    return Response([{'diet': 'No diet given or diet not in available diets'}], status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'diet': ['No diet given or diet not in available diets']}, status=status.HTTP_400_BAD_REQUEST)
                 participant.save(update_fields=['guests', 'diet'])
                 return Response(MadklubSerializer(madklub).data, status=status.HTTP_200_OK)
         else:
-            return Response([{'madklub': 'The madklub does not exist'}], status=status.HTTP_400_BAD_REQUEST)
+            return Response({'madklub': ['The madklub does not exist']}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(["post"],permission_classes=[IsAuthenticated], detail=False)
     def activate(self, request):
@@ -150,12 +150,12 @@ class MadklubViewSet(ModelViewSet):
         if Madklub.objects.filter(date = date).count() > 0:
             madklub = Madklub.objects.get(date = date)
             if madklub.owner != user:
-                return Response([{'madklub': 'You are not the owner of the madklub'}], status=status.HTTP_400_BAD_REQUEST)
+                return Response({'madklub': ['You are not the owner of the madklub']}, status=status.HTTP_400_BAD_REQUEST)
             madklub.active = True
             madklub.save(update_fields=['active'])
             return Response(MadklubSerializer(madklub).data, status=status.HTTP_200_OK)
         else:
-            return Response([{'madklub': 'The madklub does not exist'}], status=status.HTTP_400_BAD_REQUEST)
+            return Response({'madklub': ['The madklub does not exist']}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(["post"],permission_classes=[IsAuthenticated], detail=False)
     def deactivate(self, request):
@@ -167,10 +167,10 @@ class MadklubViewSet(ModelViewSet):
         if Madklub.objects.filter(date = date).count() > 0:
             madklub = Madklub.objects.get(date = date)
             if madklub.owner != user:
-                return Response([{'madklub': 'You are not the owner of the madklub'}], status=status.HTTP_400_BAD_REQUEST)
+                return Response({'madklub': ['You are not the owner of the madklub']}, status=status.HTTP_400_BAD_REQUEST)
             madklub.active = False
             madklub.save(update_fields=['active'])
             return Response(MadklubSerializer(madklub).data, status=status.HTTP_200_OK)
         else:
-            return Response([{'madklub': 'The madklub does not exist'}], status=status.HTTP_400_BAD_REQUEST)
+            return Response({'madklub': ['The madklub does not exist']}, status=status.HTTP_400_BAD_REQUEST)
 
