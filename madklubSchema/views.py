@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from MyUser.models import MyUser
+import datetime
 # from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from .serializers import SchemaSerializer
@@ -12,7 +13,9 @@ class SchemaView(APIView):
     permission_classes = (SchemaPermissions,)
 
     def get(self, request):
-        schemas = Schema.objects.all()
+        today = datetime.date.today()
+        week = today.isocalendar().week
+        schemas = Schema.objects.filter(week__gte=week, week__lte=week+5)
         serializer = SchemaSerializer(schemas, many=True)
 
         return Response(serializer.data)

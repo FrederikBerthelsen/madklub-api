@@ -52,6 +52,8 @@ class MadklubViewSet(ModelViewSet):
             if serializer.is_valid():
                 if user.diet not in data['diet']:
                     return Response({'diet': ['Your diet is not represented in the available diets']}, status=status.HTTP_400_BAD_REQUEST)
+                if MadklubParticipant.objects.filter(madklub=madklub).exclude(diet__in=data['diet']):
+                    return Response({'diet': ['You cannot remove a diet that someone has signed up as']}, status=status.HTTP_400_BAD_REQUEST)
                 madklub = serializer.save()
                 if oldDate != madklub.date:
                     MadklubParticipant.objects.filter(madklub=madklub).exclude(participant=user).delete()
@@ -62,7 +64,6 @@ class MadklubViewSet(ModelViewSet):
             return Response({'madklub': ['The madklub does not exist']}, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk):
-        print("Entered Delete")
         user = request.user
         if Madklub.objects.filter(id = pk).count() > 0:
             madklub = Madklub.objects.get(id = pk)
@@ -74,6 +75,10 @@ class MadklubViewSet(ModelViewSet):
         else:
             return Response({'madklub': ['The madklub does not exist']}, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(["get"], permission_classes=[IsAuthenticated], detail=False)
+    def getLatest(self, request):
+        madklubs = Madklub.objects.filter(owner=request.user).order_by('-date')[:5]
+        return Response(MadklubSerializer(madklubs, many=True).data, status=status.HTTP_200_OK)
 
     @action(["post"], permission_classes=[IsAuthenticated], detail=False)
     def join(self, request):
@@ -90,7 +95,7 @@ class MadklubViewSet(ModelViewSet):
         if Madklub.objects.filter(date = date).count() > 0:
             madklub = Madklub.objects.get(date = date)
             if MadklubParticipant.objects.filter(participant=user, madklub=madklub).count() > 0:
-                return Response({'madklub': ['You have already joined this madklub']}, status=HTTP_400_BAD_REQUEST)
+                return Response({'madklub': ['You have already joined this madklub']}, status=status.HTTP_400_BAD_REQUEST)
             if diet in madklub.diet:
                 MadklubParticipant.objects.create(participant=user, madklub=madklub, diet=diet, guests=guests)
                 return Response(MadklubSerializer(madklub).data, status=status.HTTP_200_OK)
