@@ -15,7 +15,7 @@ class SchemaView(APIView):
     def get(self, request):
         today = datetime.date.today()
         week = today.isocalendar().week
-        schemas = Schema.objects.filter(week__gte=week, week__lte=week+5)
+        schemas = Schema.objects.filter()
         serializer = SchemaSerializer(schemas, many=True)
 
         return Response(serializer.data)
